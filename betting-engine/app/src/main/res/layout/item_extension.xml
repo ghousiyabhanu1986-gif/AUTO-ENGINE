@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@color/surface">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView android:id="@+id/tvName" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="15sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+            <TextView android:id="@+id/tvVersion" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="11sp" android:textColor="@color/text_secondary" />
+        </LinearLayout>
+        <Switch android:id="@+id/swEnabled" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <ImageButton android:id="@+id/btnRemove" android:layout_width="32dp" android:layout_height="32dp"
+            android:src="@drawable/ic_delete" android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Remove" />
+    </LinearLayout>
+    <TextView android:id="@+id/tvDesc" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textSize="12sp" android:textColor="@color/text_secondary" android:layout_marginTop="4dp" />
+</LinearLayout>

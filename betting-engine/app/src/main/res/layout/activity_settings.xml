@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_primary">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/toolbar_bg"
+        android:elevation="4dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <!-- General -->
+            <TextView style="@style/SectionHeader" android:text="General" />
+
+            <LinearLayout android:id="@+id/rowHomePage" style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Home Page" />
+                <TextView android:id="@+id/tvHomePage" style="@style/SettingsValue" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/rowSearchEngine" style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Search Engine" />
+                <TextView android:id="@+id/tvSearchEngine" style="@style/SettingsValue" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/rowDownloadLocation" style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Download Location" />
+                <TextView android:id="@+id/tvDownloadLocation" style="@style/SettingsValue" />
+            </LinearLayout>
+
+            <!-- Appearance -->
+            <TextView style="@style/SectionHeader" android:text="Appearance" />
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Dark Mode" />
+                <Switch android:id="@+id/swDarkMode" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Desktop Mode by Default" />
+                <Switch android:id="@+id/swDesktopMode" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Content -->
+            <TextView style="@style/SectionHeader" android:text="Content" />
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="JavaScript" />
+                <Switch android:id="@+id/swJavaScript" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Load Images" />
+                <Switch android:id="@+id/swImages" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Block Pop-ups" />
+                <Switch android:id="@+id/swPopups" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Open Links in New Tab" />
+                <Switch android:id="@+id/swOpenLinksInNewTab" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Hardware Acceleration" />
+                <Switch android:id="@+id/swHardwareAcceleration" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Service Workers" />
+                <Switch android:id="@+id/swServiceWorkers" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="WebRTC" />
+                <Switch android:id="@+id/swWebRtc" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Privacy -->
+            <TextView style="@style/SectionHeader" android:text="Privacy &amp; Security" />
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Accept Cookies" />
+                <Switch android:id="@+id/swCookies" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Do Not Track" />
+                <Switch android:id="@+id/swDoNotTrack" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Safe Browsing" />
+                <Switch android:id="@+id/swSafeBrowsing" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Save Passwords" />
+                <Switch android:id="@+id/swSavePasswords" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Autofill" />
+                <Switch android:id="@+id/swAutofill" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Permissions -->
+            <TextView style="@style/SectionHeader" android:text="Site Permissions" />
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Location" />
+                <Switch android:id="@+id/swLocation" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Camera" />
+                <Switch android:id="@+id/swCamera" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Microphone" />
+                <Switch android:id="@+id/swMicrophone" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Notifications" />
+                <Switch android:id="@+id/swNotifications" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Data -->
+            <TextView style="@style/SectionHeader" android:text="Clear Data" />
+
+            <LinearLayout android:id="@+id/rowClearBrowsingData" style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Clear Browsing Data" />
+                <TextView style="@style/SettingsValue" android:text="›" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/rowClearCache" style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Clear Cache" />
+                <TextView style="@style/SettingsValue" android:text="›" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/rowClearCookies" style="@style/SettingsRow">
+                <TextView style="@style/SettingsLabel" android:text="Clear Cookies" />
+                <TextView style="@style/SettingsValue" android:text="›" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
