@@ -12,6 +12,12 @@ class ExtensionManager(private val context: Context) {
     private val extensionsDir = File(context.filesDir, "extensions")
     private val prefs = context.getSharedPreferences("extensions_prefs", Context.MODE_PRIVATE)
 
+    // Track which WebViews have been bootstrapped and which extensions are already injected.
+    // Using identity hash set since WebView doesn't have a proper equals/hashcode.
+    private val bootstrappedWebViews = mutableSetOf<Int>()
+    // Per-WebView: set of extension IDs already injected
+    private val injectedExtensions = mutableMapOf<Int, MutableSet<String>>()
+
     init { extensionsDir.mkdirs() }
 
     fun getAll(): List<Extension> {
@@ -118,14 +124,29 @@ class ExtensionManager(private val context: Context) {
 
     /**
      * Inject all enabled extensions into the given WebView page.
-     * Injects: Chrome API bridge bootstrap, then each extension's content scripts.
+     * Uses guards to avoid re-injecting the same extension or bootstrap
+     * on repeated onPageFinished callbacks (common on SPA / auto-refresh sites).
+     *
+     * - BOOTSTRAP_JS is injected only once per WebView lifetime
+     * - Each extension's content scripts are injected only once per WebView lifetime
      */
     fun injectExtensions(webView: WebView) {
-        // Always inject Chrome API bootstrap
-        webView.evaluateJavascript(ChromeApisBridge.BOOTSTRAP_JS, null)
+        val webViewId = System.identityHashCode(webView)
+
+        // Inject Chrome API bootstrap only once per WebView
+        if (bootstrappedWebViews.add(webViewId)) {
+            webView.evaluateJavascript(ChromeApisBridge.BOOTSTRAP_JS, null)
+        }
 
         val extensions = getAll().filter { it.enabled }
+        // Get or create the injected set for this WebView
+        val injected = injectedExtensions.getOrPut(webViewId) { mutableSetOf() }
+
         for (ext in extensions) {
+            // Skip extensions already injected into this WebView
+            if (ext.id in injected) continue
+            injected.add(ext.id)
+
             val extDir = File(ext.path)
             for (cs in ext.manifest.contentScripts) {
                 // Inject CSS
@@ -153,5 +174,25 @@ class ExtensionManager(private val context: Context) {
                 }
             }
         }
+    }
+
+    /**
+     * Reset injection state for a WebView. Call when a tab's WebView is being
+     * destroyed or when navigating to a completely new domain where extensions
+     * should be re-applied fresh.
+     */
+    fun resetInjectionState(webView: WebView) {
+        val webViewId = System.identityHashCode(webView)
+        bootstrappedWebViews.remove(webViewId)
+        injectedExtensions.remove(webViewId)
+    }
+
+    /**
+     * Force re-inject all extensions on next injectExtensions call.
+     * Useful when extensions are enabled/disabled at runtime.
+     */
+    fun invalidateAllInjectionState() {
+        bootstrappedWebViews.clear()
+        injectedExtensions.clear()
     }
 }
