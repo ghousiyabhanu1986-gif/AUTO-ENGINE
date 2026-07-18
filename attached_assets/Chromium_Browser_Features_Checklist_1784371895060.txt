@@ -1,0 +1,200 @@
+CHROMIUM BROWSER FEATURES CHECKLIST
+
+1.  Browser Engine
+
+-   Chromium engine
+-   Blink rendering
+-   V8 JavaScript
+-   Multi-process
+-   GPU acceleration
+-   HTML5/CSS3
+-   WebGL
+-   WebRTC
+-   Service Workers
+-   IndexedDB
+-   Local Storage
+-   Session Storage
+-   Cache API
+-   Cookie manager
+-   Download manager
+-   PDF viewer
+-   File upload/download
+-   Hardware media acceleration
+
+2.  Browser UI
+
+-   Home screen
+-   Tabs
+-   Incognito
+-   Downloads
+-   History
+-   Bookmarks
+-   Settings
+-   Search engine selection
+-   Find in page
+-   Reader mode (optional)
+-   Full screen
+-   Desktop mode
+-   Dark mode
+-   Zoom
+-   Pull-to-refresh
+-   Swipe navigation
+-   Back/Forward/Refresh/Stop
+
+3.  Extension System
+
+-   Install extensions
+-   Enable/Disable
+-   Remove
+-   Update
+-   Import CRX
+-   Import unpacked
+-   Import ZIP
+
+4.  Chrome Extension APIs
+
+-   chrome.runtime
+-   chrome.storage
+-   chrome.tabs
+-   chrome.action
+-   chrome.scripting
+-   chrome.permissions
+-   chrome.webNavigation
+-   chrome.webRequest
+-   chrome.cookies
+-   chrome.notifications
+-   chrome.contextMenus
+-   chrome.downloads
+-   chrome.alarms
+-   chrome.i18n
+
+5.  Manifest Support
+
+-   Manifest V2
+-   Manifest V3
+-   manifest.json
+-   Icons
+-   Permissions
+-   Content scripts
+-   Background service workers
+-   Commands
+-   Host permissions
+
+6.  Content Script Injection
+
+-   Detect page load
+-   Inject JS
+-   Inject CSS
+-   Allow floating panel
+
+7.  Background Runtime
+
+-   Background execution
+-   Timers
+-   Messaging
+-   Storage
+-   API requests
+-   Event listeners
+
+8.  Messaging
+
+-   Content ↔ Background
+-   Popup ↔ Background
+-   Options ↔ Background
+-   Browser ↔ Extension
+
+9.  Extension Storage
+
+-   chrome.storage.local
+-   chrome.storage.sync (optional)
+-   IndexedDB
+-   Local Storage
+
+10. Permissions
+
+-   Active Tab
+-   Storage
+-   Downloads
+-   Notifications
+-   Clipboard
+-   Host permissions
+-   Cookies
+-   Tabs
+
+11. Security
+
+-   Sandboxing
+-   Safe Browsing (optional)
+-   HTTPS
+-   Certificate validation
+-   Permission prompts
+-   Site isolation
+
+12. Downloads
+
+-   Pause/Resume
+-   Rename
+-   Notifications
+-   History
+
+13. JavaScript
+
+-   ES6+
+-   WebAssembly
+-   Service Workers
+-   Workers
+-   Shared Workers
+
+14. Website Compatibility
+
+-   HTML5
+-   CSS3
+-   JavaScript
+-   React
+-   Angular
+-   Vue
+-   Canvas
+-   SVG
+-   WebGL
+
+15. Performance
+
+-   GPU acceleration
+-   Hardware rendering
+-   V8 optimization
+-   Lazy loading
+-   Memory management
+-   Multi-threading
+
+16. Android Integration
+
+-   Camera
+-   Microphone
+-   File picker
+-   Notifications
+-   Clipboard
+-   Share
+-   Storage access
+
+17. Single Website (Kiosk)
+
+-   Open one URL automatically
+-   No address bar
+-   No search
+-   No tabs
+-   No bookmarks/history
+-   Block external sites
+-   Full screen
+-   Auto reload after crash/network recovery
+
+18. Floating Extension Support
+
+-   Content-script injection
+-   DOM manipulation
+-   JavaScript execution
+-   CSS injection
+-   Background runtime
+-   Messaging APIs
+-   Storage APIs
+-   Permission handling
+That means it behaves more like a browser with an extension viewer than a browser with a working Chrome extension system.
