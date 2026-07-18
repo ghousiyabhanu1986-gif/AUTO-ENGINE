@@ -109,6 +109,7 @@ class BrowserActivity : AppCompatActivity() {
         )
         applyWebViewSettings(webView, tab.isIncognito)
         webView.webViewClient = BrowserWebViewClient(
+            context = this,
             onPageStarted = { url ->
                 updateAddressBar(url)
                 binding.progressBar.isVisible = true

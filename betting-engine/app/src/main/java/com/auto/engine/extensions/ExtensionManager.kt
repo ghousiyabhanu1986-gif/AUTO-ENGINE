@@ -20,12 +20,25 @@ class ExtensionManager(private val context: Context) {
     }
 
     private fun loadExtension(dir: File): Extension? {
-        val manifestFile = File(dir, "manifest.json")
+        // Search for manifest.json in root or one-level subdirectories (for zips with wrapper dirs)
+        var manifestFile = File(dir, "manifest.json")
+        if (!manifestFile.exists()) {
+            val subDirs = dir.listFiles { f -> f.isDirectory } ?: return null
+            for (subDir in subDirs) {
+                val candidate = File(subDir, "manifest.json")
+                if (candidate.exists()) {
+                    manifestFile = candidate
+                    break
+                }
+            }
+        }
         if (!manifestFile.exists()) return null
         return try {
             val manifest = gson.fromJson(manifestFile.readText(), ExtensionManifest::class.java)
             val enabled = prefs.getBoolean("enabled_${dir.name}", true)
-            Extension(id = dir.name, manifest = manifest, path = dir.absolutePath, enabled = enabled)
+            // Use the directory containing manifest.json as the effective path
+            val effectivePath = manifestFile.parentFile?.absolutePath ?: dir.absolutePath
+            Extension(id = dir.name, manifest = manifest, path = effectivePath, enabled = enabled)
         } catch (e: Exception) { null }
     }
 
@@ -42,11 +55,25 @@ class ExtensionManager(private val context: Context) {
             val extId = "${manifest.name.replace(" ", "_")}_${System.currentTimeMillis()}"
             val extDir = File(extensionsDir, extId)
             extDir.mkdirs()
-            // Extract all files
+
+            // Determine if there's a wrapper directory (like "extension/") in the zip
+            // If the manifest is nested (e.g. "extension/manifest.json"), strip the prefix
+            val stripPrefix = if (manifestEntry.name != "manifest.json") {
+                manifestEntry.name.substringBeforeLast("/") + "/"
+            } else null
+
+            // Extract all files, stripping the wrapper directory prefix if present
             zipFile.entries().asSequence().forEach { entry ->
-                val file = File(extDir, entry.name)
-                if (entry.isDirectory) file.mkdirs()
-                else {
+                if (entry.isDirectory) {
+                    val cleanName = if (stripPrefix != null) {
+                        entry.name.removePrefix(stripPrefix)
+                    } else entry.name
+                    if (cleanName.isNotEmpty()) File(extDir, cleanName).mkdirs()
+                } else {
+                    val cleanName = if (stripPrefix != null) {
+                        entry.name.removePrefix(stripPrefix)
+                    } else entry.name
+                    val file = File(extDir, cleanName)
                     file.parentFile?.mkdirs()
                     file.outputStream().use { out -> zipFile.getInputStream(entry).copyTo(out) }
                 }
@@ -75,6 +102,21 @@ class ExtensionManager(private val context: Context) {
     }
 
     /**
+     * Find a file by path within an extension directory, searching
+     * both the root and one level of subdirectories.
+     */
+    private fun findExtensionFile(extDir: File, fileName: String): File? {
+        val direct = File(extDir, fileName)
+        if (direct.exists()) return direct
+        // Search one level of subdirectories
+        extDir.listFiles { f -> f.isDirectory }?.forEach { subDir ->
+            val candidate = File(subDir, fileName)
+            if (candidate.exists()) return candidate
+        }
+        return null
+    }
+
+    /**
      * Inject all enabled extensions into the given WebView page.
      * Injects: Chrome API bridge bootstrap, then each extension's content scripts.
      */
@@ -88,8 +130,8 @@ class ExtensionManager(private val context: Context) {
             for (cs in ext.manifest.contentScripts) {
                 // Inject CSS
                 cs.css.forEach { cssFile ->
-                    val f = File(extDir, cssFile)
-                    if (f.exists()) {
+                    val f = findExtensionFile(extDir, cssFile)
+                    if (f != null && f.exists()) {
                         val css = f.readText().replace("\\", "\\\\").replace("`", "\\`")
                         val js = """
                             (function(){
@@ -103,8 +145,8 @@ class ExtensionManager(private val context: Context) {
                 }
                 // Inject JS
                 cs.js.forEach { jsFile ->
-                    val f = File(extDir, jsFile)
-                    if (f.exists()) {
+                    val f = findExtensionFile(extDir, jsFile)
+                    if (f != null && f.exists()) {
                         val code = f.readText()
                         webView.evaluateJavascript(code, null)
                     }

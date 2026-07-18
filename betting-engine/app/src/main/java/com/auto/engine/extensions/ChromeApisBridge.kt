@@ -4,6 +4,7 @@ import android.content.Context
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import com.google.gson.Gson
+import java.io.File
 
 /**
  * JavaScript bridge that exposes Chrome Extension APIs to WebView content scripts.
@@ -17,7 +18,7 @@ class ChromeApisBridge(
     private val gson = Gson()
     private val storage = context.getSharedPreferences("ext_storage", Context.MODE_PRIVATE)
     private val syncStorage = context.getSharedPreferences("ext_storage_sync", Context.MODE_PRIVATE)
-    private val messageListeners = mutableListOf<String>()
+    private val extensionsDir = File(context.filesDir, "extensions")
 
     // ─── chrome.storage.local ────────────────────────────────────────────────
 
@@ -115,28 +116,10 @@ class ChromeApisBridge(
     fun runtimeSendMessage(message: String): String = "{\"success\":true}"
 
     @JavascriptInterface
-    fun runtimeOnMessage(callbackName: String) {
-        messageListeners.add(callbackName)
-    }
-
-    // ─── chrome.cookies ──────────────────────────────────────────────────────
-
-    @JavascriptInterface
-    fun cookiesGetAll(detailsJson: String): String {
-        // Cookies are managed by Android's CookieManager
-        return "[]"
-    }
-
-    // ─── chrome.notifications ────────────────────────────────────────────────
-
-    @JavascriptInterface
-    fun notificationsCreate(id: String, optionsJson: String) {
-        try {
-            val opts = gson.fromJson(optionsJson, Map::class.java)
-            val title = opts["title"]?.toString() ?: "Extension Notification"
-            val message = opts["message"]?.toString() ?: ""
-            // Show Android notification (simple toast fallback)
-        } catch (_: Exception) {}
+    fun runtimeGetURL(resourcePath: String): String {
+        // Build a custom scheme URL that will be intercepted by the WebView client
+        // Format: chrome-extension://<ext_id>/<resource_path>
+        return "chrome-extension://auto-engine-extension/$resourcePath"
     }
 
     // ─── chrome.webNavigation ────────────────────────────────────────────────
@@ -153,6 +136,26 @@ class ChromeApisBridge(
     fun getVersion(): String = "1.0.0"
 
     companion object {
+        /**
+         * Find an extension resource file by searching all installed extension directories.
+         * Used by WebViewClient to resolve chrome-extension:// URLs.
+         */
+        fun findExtensionResource(context: Context, resourcePath: String): File? {
+            val extensionsDir = File(context.filesDir, "extensions")
+            if (!extensionsDir.exists()) return null
+            extensionsDir.listFiles { f -> f.isDirectory }?.forEach { extDir ->
+                // Check direct path
+                val direct = File(extDir, resourcePath)
+                if (direct.exists()) return direct
+                // Check one level of subdirectories (for zips with wrapper dirs)
+                extDir.listFiles { f -> f.isDirectory }?.forEach { subDir ->
+                    val nested = File(subDir, resourcePath)
+                    if (nested.exists()) return nested
+                }
+            }
+            return null
+        }
+
         /**
          * JavaScript bootstrapper injected into every page.
          * Maps window.AndroidBridge.* to window.chrome.* APIs.
@@ -193,6 +196,7 @@ class ChromeApisBridge(
   window.chrome.runtime = {
     id: bridge.runtimeGetId(),
     getManifest: function() { return JSON.parse(bridge.runtimeGetManifest()); },
+    getURL: function(path) { return bridge.runtimeGetURL(path); },
     sendMessage: function(msg, cb) { var r = JSON.parse(bridge.runtimeSendMessage(JSON.stringify(msg))); if(cb) cb(r); },
     onMessage: { addListener: function(fn) { window._chromeOnMessageListeners = window._chromeOnMessageListeners || []; window._chromeOnMessageListeners.push(fn); } }
   };
@@ -201,14 +205,22 @@ class ChromeApisBridge(
   window.chrome.tabs = {
     getCurrent: function(cb) { var t = JSON.parse(bridge.tabsGetCurrent()); if(cb) cb(t); return t; },
     create: function(props, cb) { var t = JSON.parse(bridge.tabsCreate(props.url || '')); if(cb) cb(t); return t; },
-    query: function(q, cb) { var t = [JSON.parse(bridge.tabsGetCurrent())]; if(cb) cb(t); return t; }
+    query: function(q, cb) { var t = [JSON.parse(bridge.tabsGetCurrent())]; if(cb) cb(t); return t; },
+    update: function(id, props) {},
+    sendMessage: function(id, msg, cb) { var r = JSON.parse(bridge.runtimeSendMessage(JSON.stringify(msg))); if(cb) cb(r); }
+  };
+  
+  // chrome.windows
+  window.chrome.windows = {
+    update: function(id, props) {}
   };
   
   // chrome.action
   window.chrome.action = {
     setTitle: function() {},
     setBadgeText: function() {},
-    setBadgeBackgroundColor: function() {}
+    setBadgeBackgroundColor: function() {},
+    onClicked: { addListener: function(fn) { window._chromeActionListener = fn; } }
   };
   
   // chrome.scripting
