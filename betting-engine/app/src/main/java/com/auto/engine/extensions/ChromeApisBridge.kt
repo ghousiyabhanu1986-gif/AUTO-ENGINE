@@ -1,10 +1,13 @@
 package com.auto.engine.extensions
 
 import android.content.Context
+import android.os.SystemClock
+import android.view.MotionEvent
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import com.google.gson.Gson
 import java.io.File
+import java.lang.ref.WeakReference
 
 /**
  * JavaScript bridge that exposes Chrome Extension APIs to WebView content scripts.
@@ -19,6 +22,58 @@ class ChromeApisBridge(
     private val storage = context.getSharedPreferences("ext_storage", Context.MODE_PRIVATE)
     private val syncStorage = context.getSharedPreferences("ext_storage_sync", Context.MODE_PRIVATE)
     private val extensionsDir = File(context.filesDir, "extensions")
+
+    // Weak reference to the WebView for native touch dispatching
+    @Volatile
+    private var webViewRef: WeakReference<WebView>? = null
+
+    fun attachWebView(webView: WebView) {
+        webViewRef = WeakReference(webView)
+    }
+
+    fun detachWebView() {
+        webViewRef = null
+    }
+
+    // ─── Native Touch Simulation (Android-level dispatchTouchEvent) ──────────
+
+    /**
+     * Simulate a native Android tap at the given viewport coordinates.
+     * Uses MotionEvent dispatching through the WebView, which is far more
+     * reliable than JavaScript dispatchEvent for mobile touch-based sites.
+     *
+     * @param x X coordinate in CSS pixels from viewport left
+     * @param y Y coordinate in CSS pixels from viewport top
+     */
+    @JavascriptInterface
+    fun simulateNativeTap(x: Double, y: Double) {
+        val webView = webViewRef?.get() ?: return
+        val density = context.resources.displayMetrics.density
+        val px = (x * density).toFloat()
+        val py = (y * density).toFloat()
+        val downTime = SystemClock.uptimeMillis()
+        val eventTime = downTime
+
+        // ACTION_DOWN
+        val down = MotionEvent.obtain(
+            downTime, eventTime,
+            MotionEvent.ACTION_DOWN, px, py, 0
+        )
+        webView.dispatchTouchEvent(down)
+
+        // Small delay for the down event to register
+        try { Thread.sleep(50) } catch (_: InterruptedException) {}
+
+        // ACTION_UP
+        val up = MotionEvent.obtain(
+            downTime, eventTime + 50,
+            MotionEvent.ACTION_UP, px, py, 0
+        )
+        webView.dispatchTouchEvent(up)
+
+        down.recycle()
+        up.recycle()
+    }
 
     // ─── chrome.storage.local ────────────────────────────────────────────────
 
@@ -99,7 +154,6 @@ class ChromeApisBridge(
 
     @JavascriptInterface
     fun tabsCreate(url: String): String {
-        // Signal to the JS layer that a new tab was requested
         val tab = mapOf("id" to 2, "url" to url, "active" to true)
         return gson.toJson(tab)
     }
@@ -117,8 +171,6 @@ class ChromeApisBridge(
 
     @JavascriptInterface
     fun runtimeGetURL(resourcePath: String): String {
-        // Build a custom scheme URL that will be intercepted by the WebView client
-        // Format: chrome-extension://<ext_id>/<resource_path>
         return "chrome-extension://auto-engine-extension/$resourcePath"
     }
 
@@ -136,18 +188,12 @@ class ChromeApisBridge(
     fun getVersion(): String = "1.0.0"
 
     companion object {
-        /**
-         * Find an extension resource file by searching all installed extension directories.
-         * Used by WebViewClient to resolve chrome-extension:// URLs.
-         */
         fun findExtensionResource(context: Context, resourcePath: String): File? {
             val extensionsDir = File(context.filesDir, "extensions")
             if (!extensionsDir.exists()) return null
             extensionsDir.listFiles { f -> f.isDirectory }?.forEach { extDir ->
-                // Check direct path
                 val direct = File(extDir, resourcePath)
                 if (direct.exists()) return direct
-                // Check one level of subdirectories (for zips with wrapper dirs)
                 extDir.listFiles { f -> f.isDirectory }?.forEach { subDir ->
                     val nested = File(subDir, resourcePath)
                     if (nested.exists()) return nested
@@ -156,10 +202,6 @@ class ChromeApisBridge(
             return null
         }
 
-        /**
-         * JavaScript bootstrapper injected into every page.
-         * Maps window.AndroidBridge.* to window.chrome.* APIs.
-         */
         val BOOTSTRAP_JS = """
 (function() {
   if (typeof window.AndroidBridge === 'undefined') return;
@@ -267,8 +309,16 @@ class ChromeApisBridge(
     onBeforeRequest: { addListener: function(){} },
     onHeadersReceived: { addListener: function(){} }
   };
+
+  // ─── Native tap bridge ────────────────────────────────────────────────────
+  // Expose native Android touch simulation to extension content scripts.
+  // Uses android.dispatchTouchEvent for real OS-level taps that work
+  // even on sites that ignore programmatic JavaScript MouseEvent / TouchEvent.
+  window.__nativeTap = function(x, y) {
+    bridge.simulateNativeTap(x, y);
+  };
   
-  console.log('[BettingEngine] Chrome Extension APIs initialized');
+  console.log('[BettingEngine] Chrome Extension APIs initialized (+ native tap)');
 })();
         """.trimIndent()
     }

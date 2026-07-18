@@ -180,9 +180,10 @@ class BrowserActivity : AppCompatActivity() {
             userAgentString = if (isDesktopMode) DESKTOP_UA else DEFAULT_UA
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
         }
-        // Inject Chrome Extension APIs bridge
+        // Inject Chrome Extension APIs bridge (with native tap support)
         val bridge = ChromeApisBridge(this, isIncognito)
         webView.addJavascriptInterface(bridge, "AndroidBridge")
+        bridge.attachWebView(webView)
 
         if (isIncognito) {
             CookieManager.getInstance().setAcceptCookie(false)
