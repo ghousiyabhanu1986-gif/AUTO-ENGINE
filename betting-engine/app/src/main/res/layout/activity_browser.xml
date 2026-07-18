@@ -79,7 +79,7 @@
                 android:textSize="14sp"
                 android:textColor="@color/text_primary"
                 android:hint="Search or type URL"
-                android:hintTextColor="@color/text_hint" />
+                android:textColorHint="@color/text_hint" />
 
             <ImageButton
                 android:id="@+id/btnReload"
